@@ -17,7 +17,7 @@ class User(TimeStampedModel):
     roles = Relationship('Role', secondary='user_roles', back_populates='users', passive_deletes=True)
 
     def __repr__(self):
-        return f'<User(id={self.id}, first_name={self.first_name}, last_name={self.last_name})>'
+        return f'User(id={self.id}, first_name={self.first_name}, last_name={self.last_name})'
 
 
 class Preference(TimeStampedModel):
