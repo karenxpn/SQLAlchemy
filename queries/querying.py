@@ -1,6 +1,13 @@
 from sqlalchemy import desc
 
+from main import session
 from models.user import User, Role
+
+# session.query if we haven't setup in the base
+# Model = declarative_base()
+# Model.query = session.query_property()
+# all_users = session.query(User).all()
+# print(all_users)
 
 all_users = User.query.all()
 first_user = User.query.first()
