@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Relationship
 
-from models.base import TimeStampedModel
+from models.base import TimeStampedModel, Model
 
 
 class User(TimeStampedModel):
@@ -14,6 +14,7 @@ class User(TimeStampedModel):
 
     preference = Relationship('Preference', back_populates='user', uselist=False, passive_deletes=True)
     addresses = Relationship('Address', back_populates='user', passive_deletes=True)
+    roles = Relationship('Role', secondary='user_roles', back_populates='users', passive_deletes=True)
 
     def __repr__(self):
         return f'<User(id={self.id}, first_name={self.first_name}, last_name={self.last_name})>'
@@ -41,3 +42,25 @@ class Address(TimeStampedModel):
 
     user = Relationship('User', back_populates='addresses')
 
+    def __dir__(self):
+        return f'{self.__class__.__name__}, name: {self.city}'
+
+
+class Role(Model):
+    __tablename__ = 'roles'
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    name = Column(String(80), nullable=False)
+    slug = Column(String(80), nullable=False, unique=True)
+
+    users = Relationship('User', secondary='user_roles', back_populates='roles', passive_deletes=True)
+
+    def __repr__(self):
+        return f'{self.__class__.__name__}, name: ({self.name})'
+
+
+class UserRole(TimeStampedModel):
+    __tablename__ = 'user_roles'
+
+    user_id = Column(Integer, ForeignKey('users.id', ondelete='CASCADE'), primary_key=True)
+    role_id = Column(Integer, ForeignKey('roles.id', ondelete='CASCADE'), primary_key=True)
