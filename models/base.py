@@ -1,13 +1,13 @@
 from datetime import datetime
 
 from sqlalchemy import Column, DateTime
-from sqlalchemy.orm import declarative_base
-from main import session
+from sqlalchemy.orm import DeclarativeBase
 
-Model = declarative_base()
-Model.query = session.query_property()
 
-class TimeStampedModel(Model):
+class Base(DeclarativeBase):
+    pass
+
+class TimeStampedModel(Base):
     __abstract__ = True
 
     created_at = Column(DateTime, default=datetime.now)

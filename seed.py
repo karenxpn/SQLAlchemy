@@ -1,4 +1,8 @@
-from main import session
+import asyncio
+
+from sqlalchemy import select
+
+from main import async_session
 from models.user import User, Address, Preference, Role
 
 role_data = [
@@ -156,30 +160,42 @@ user_data = [
     }
 ]
 
-for role in role_data:
-    session.add(Role(**role))
 
-session.commit()
+async def seed_db():
+    async with async_session() as session:
+        async with session.begin():
+            for role in role_data:
+                session.add(Role(**role))
 
-roles = Role.query.all()
+            await session.flush()
 
-users = []
+            result = await session.execute(select(Role))
+            roles = result.scalars().all()
 
-for u in user_data:
-    user = User()
-    user.first_name = u.get("first_name")
-    user.last_name = u.get("last_name")
-    user.email = u.get("email")
+            users = []
+            for u in user_data:
+                user = User(
+                    first_name=u["first_name"],
+                    last_name=u["last_name"],
+                    email=u["email"],
+                )
 
-    addresses = []
-    for address in u.get("addresses"):
-        addresses.append(Address(**address))
+                addresses = [Address(**addr) for addr in u["addresses"]]
+                user.addresses.extend(addresses)
+                user.preference = Preference(**u["preference"])
+                user.roles = roles
 
-    user.addresses.extend(addresses)
-    user.preference = Preference(**u.get("preference"))
-    user.roles = roles
+                users.append(user)
 
-    users.append(user)
+            session.add_all(users)
 
-session.add_all(users)
-session.commit()
+        await session.commit()
+
+
+if __name__ == "__main__":
+    asyncio.run(seed_db())
+
+
+
+
+
