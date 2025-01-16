@@ -1,24 +1,20 @@
-from sqlalchemy.orm import joinedload, contains_eager
+import asyncio
 
-from models.user import User, Address
+from sqlalchemy import select
+from sqlalchemy.orm import joinedload
 
-#
-# users = (
-#     User.query
-#     .options(joinedload(User.addresses))
-#     .all()
-# )
-#
-# for user in users:
-#     print(user.addresses)
+from main import async_session
+from models.user import User
 
-users = (
-    User.query
-    .join(User.addresses)
-    .filter(Address.city == "London")
-    .options(contains_eager(User.addresses))
-    .all()
-)
+async def get_users():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .options(joinedload(User.addresses))
+        )
+        return result.scalars().unique().all()
 
+users = asyncio.run(get_users())
 for user in users:
     print(user.addresses)
+

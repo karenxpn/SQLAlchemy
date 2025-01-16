@@ -1,20 +1,26 @@
-from main import session
+import asyncio
+
+from main import async_session
 from models.user import User, Preference
 
-user = User(
-    first_name='John',
-    last_name='Smith',
-    email='jsmith@gmail.com'
-)
+async def transaction_example():
+    async with async_session() as session:
+        user = User(
+            first_name='John',
+            last_name='Smith',
+            email='jsmith@gmail.com'
+        )
+        session.add(user)
 
-session.add(user)
+        raise Exception("Something went wrong")
 
-raise Exception("Something went wrong")
+        preference = Preference(
+            language="English",
+            currency="GBP",
+        )
 
-preference = Preference(
-    language="English",
-    currency="GBP",
-)
+        preference.user = user
+        await session.commit()
 
-preference.user = user
-session.commit()
+
+asyncio.run(transaction_example())

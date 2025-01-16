@@ -1,7 +1,7 @@
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import Relationship
 
-from models.base import TimeStampedModel, Model
+from models.base import TimeStampedModel, Base
 
 
 class User(TimeStampedModel):
@@ -46,7 +46,7 @@ class Address(TimeStampedModel):
         return f'{self.__class__.__name__}, name: {self.city}'
 
 
-class Role(Model):
+class Role(Base):
     __tablename__ = 'roles'
 
     id = Column(Integer, primary_key=True, autoincrement=True)
