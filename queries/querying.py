@@ -1,49 +1,108 @@
-from sqlalchemy import desc
-
-from main import session
+import asyncio
+from sqlalchemy import select, func
+from main import async_session
 from models.user import User, Role
 
-# session.query if we haven't setup in the base
-# Model = declarative_base()
-# Model.query = session.query_property()
-# all_users = session.query(User).all()
-# print(all_users)
+async def get_all_users():
+    async with async_session() as session:
+        result = await session.execute(select(User))
+        users = result.scalars().all()
+        return users
 
-all_users = User.query.all()
-first_user = User.query.first()
+users = asyncio.run(get_all_users())
+print(users)
 
-print(all_users)
+async def get_first_user():
+    async with async_session() as session:
+        result = await session.execute(select(User))
+        user = result.scalars().first()
+        return user
+
+first_user = asyncio.run(get_first_user())
 print(first_user)
 
-johns = User.query.filter_by(first_name='John').all()
-print(johns)
+async def get_john_users():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .where(User.first_name == "John")
+        )
+        users = result.scalars().all()
+        return users
 
-johns = User.query.filter(User.first_name == 'John').all()
-print(johns)
+john_users = asyncio.run(get_john_users())
+print(john_users)
 
+async def get_gmail_users():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .where(User.email.like('%gmail.com'))
+        )
+        users = result.scalars().all()
+        return users
 
-gmail_users = User.query.filter(User.email.like('%@gmail.com')).all()
+gmail_users = asyncio.run(get_gmail_users())
 print(gmail_users)
 
-super_admins = (User.query
-                .join(User.roles)
-                .filter(Role.slug == 'super-admin').all())
-print(super_admins)
+async def get_super_admin_users():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .join(User.roles)
+            .where(Role.slug == 'super-admin')
+        )
+        users = result.scalars().all()
+        return users
 
+super_admin_users = asyncio.run(get_super_admin_users())
+print(super_admin_users)
 
-users_by_name = User.query.order_by(User.first_name).all()
+async def get_users_ordered_by_name():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .order_by(User.first_name)
+            # .order_by(desc(User.first_name))
+        )
+        users = result.scalars().all()
+        return users
+
+users_by_name = asyncio.run(get_users_ordered_by_name())
 print(users_by_name)
 
-users_by_name_desc = User.query.order_by(desc(User.first_name)).all()
-print(users_by_name_desc)
+async def get_first_three_users():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .limit(3)
+        )
+        users = result.scalars().all()
+        return users
 
-
-first_three_users = User.query.limit(3).all()
+first_three_users = asyncio.run(get_first_three_users())
 print(first_three_users)
 
-skip_three_users = User.query.offset(3).all()
+
+async def skip_three_users():
+    async with async_session() as session:
+        result = await session.execute(
+            select(User)
+            .offset(3)
+        )
+        users = result.scalars().all()
+        return users
+
+skip_three_users = asyncio.run(skip_three_users())
 print(skip_three_users)
 
 
-num_of_users = User.query.count()
-print(num_of_users)
+async def get_users_count():
+    async with async_session() as session:
+        result = await session.execute(
+            select(func.count(User.id))
+        )
+        return result.scalar()
+
+num_users = asyncio.run(get_users_count())
+print(num_users)
