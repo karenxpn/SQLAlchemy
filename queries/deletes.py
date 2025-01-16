@@ -1,11 +1,20 @@
-from main import session
+import asyncio
+
+from sqlalchemy import select
+
+from main import async_session
 from models.user import User
 
-user = User.query.first()
-print(user)
+async def delete_first_user():
+    async with async_session() as session:
+        async with session.begin():
+            result = await session.execute(select(User).order_by(User.id))
+            first_user = result.scalars().first()
 
-session.delete(user)
-session.commit()
+            if first_user:
+                await session.delete(first_user)
+            else:
+                print('No user found')
 
-user = User.query.first()
-print(user)
+
+asyncio.run(delete_first_user())
